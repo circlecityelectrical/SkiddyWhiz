@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="(Graphical User Interface)viewport" content="width=device-width, initial-scale=1.0">
     <title>SkiddyWhiz - Electrical Assistant</title>
     <style>
         body {
@@ -10,98 +10,42 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: linear-gradient(to bottom, #1e3c72, #2a5298); /* Electric blue gradient */
+            background-color: #f0f0f0;
             margin: 0;
             padding: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-        /* Background with circuit lines and sparks */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M10 10 H90 V90 H10 Z" stroke="rgba(255, 255, 0, 0.2)" stroke-width="2" fill="none"/></svg>') repeat;
-            opacity: 0.1;
-            z-index: 0;
         }
         #chat-container {
             width: 100%;
             max-width: 600px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 191, 255, 0.5); /* Electric blue glow */
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
             padding: 20px;
-            position: relative;
-            z-index: 1;
-            animation: glow 2s infinite alternate;
-        }
-        /* Glow animation for chat container */
-        @keyframes glow {
-            from { box-shadow: 0 0 20px rgba(0, 191, 255, 0.5); }
-            to { box-shadow: 0 0 30px rgba(0, 191, 255, 0.8); }
         }
         #chat-output {
             height: 300px;
             overflow-y: auto;
-            border: 2px solid #ffd700; /* Neon yellow border */
-            border-radius: 10px;
+            border: 1px solid #ccc;
             padding: 10px;
             margin-bottom: 10px;
-            background: #fff;
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2L9 9H2L7 14L4 21H11L12 24L13 21H20L17 14L22 9H15L12 2Z" fill="yellow" stroke="blue" stroke-width="2"/></svg>'), auto; /* Lightning bolt cursor */
         }
         #user-input {
             width: 100%;
             padding: 10px;
-            border: 2px solid #ffd700;
+            border: 1px solid #ccc;
             border-radius: 5px;
-            background: #e6f0ff; /* Light blue background */
-            color: #333;
         }
         button {
             padding: 10px 20px;
-            background-color: #00b7eb; /* Electric blue */
+            background-color: #007BFF;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             margin-top: 10px;
-            transition: background-color 0.3s;
         }
         button:hover {
-            background-color: #ffd700; /* Neon yellow on hover */
-            color: #333;
-        }
-        /* Einstein-inspired character */
-        #einstein-character {
-            position: absolute;
-            top: -60px;
-            right: 10px;
-            width: 100px;
-            height: 100px;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="lightgray"/><path d="M30 30 Q50 20 70 30 Q70 50 50 40 Q30 50 30 30" fill="white" stroke="black" stroke-width="2"/><circle cx="40" cy="45" r="8" fill="white" stroke="black" stroke-width="4"/><circle cx="60" cy="45" r="8" fill="white" stroke="black" stroke-width="4"/><path d="M40 55 Q50 60 60 55" fill="none" stroke="black" stroke-width="2"/></svg>') no-repeat; /* Placeholder SVG for Einstein */
-            animation: spark 3s infinite;
-        }
-        /* Spark animation above Einstein’s head */
-        @keyframes spark {
-            0%, 100% { background-position: 0 0; }
-            50% { background-position: 0 -10px; transform: scale(1.1); }
-        }
-        /* Zap effect on message send */
-        .zap-effect {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M2 10L8 2L12 10L8 18Z" fill="yellow" stroke="blue" stroke-width="2"/></svg>');
-            animation: zap 0.5s forwards;
-        }
-        @keyframes zap {
-            0% { opacity: 1; transform: translate(0, 0); }
-            100% { opacity: 0; transform: translate(50px, -50px); }
+            background-color: #0056b3;
         }
         @media (max-width: 600px) {
             #chat-container {
@@ -110,17 +54,11 @@
             button {
                 width: 100%;
             }
-            #einstein-character {
-                width: 80px;
-                height: 80px;
-                top: -50px;
-            }
         }
     </style>
 </head>
 <body>
     <div id="chat-container">
-        <div id="einstein-character"></div>
         <div id="chat-output"></div>
         <input type="text" id="user-input" placeholder="Type your message...">
         <button onclick="sendMessage()">Send</button>
@@ -130,65 +68,73 @@
         // User data storage
         let userProfile = JSON.parse(localStorage.getItem('userProfile')) || {
             name: null,
-            projects: [],
-            lastVisit: null,
-            quotePreference: null
+            issue: null,
+            details: {},
+            lastVisit: null
         };
 
-        // Service pricing and info (labor + materials)
-        const services = {
-            'fan install': { description: 'Ceiling Fan Installation (new switch & bracing)', labor: 200, materials: 50, total: 250 },
-            'fan replace': { description: 'Ceiling Fan Replacement (existing wiring)', labor: 150, materials: 30, total: 180 },
-            'can lights': { description: 'Six Can Lights Installation', labor: 400, materials: 150, total: 550 },
-            'panel change': { description: 'Panel Change with Outside Disconnect (NEC code)', labor: 800, materials: 1200, total: 2000 },
-            'install outlet': { description: 'Install Standard Outlet', labor: 100, materials: 2, total: 102, materialRange: '$1-$3' },
-            'install gfci': { description: 'Install GFCI Outlet', labor: 100, materials: 20, total: 120, materialRange: '$15-$25' },
-            'install usb': { description: 'Install USB Receptacle', labor: 100, materials: 25, total: 125, materialRange: '$20-$30' },
-            'install smart': { description: 'Install Smart Outlet', labor: 100, materials: 35, total: 135, materialRange: '$15-$50' },
-            'install weather': { description: 'Install Weather-Resistant Outlet', labor: 100, materials: 15, total: 115, materialRange: '$10-$20' },
-            'install heavy': { description: 'Install 30/50-Amp Receptacle (Heavy Appliances)', labor: 200, materials: 20, total: 220, materialRange: '$15-$30' },
-            'replace outlet': { description: 'Replace Standard Outlet', labor: 50, materials: 2, total: 52, materialRange: '$1-$3' },
-            'replace plug': { description: 'Replace Electrical Plug', labor: 50, materials: 12, total: 62, materialRange: '$10-$15' },
-            'wiring': { description: 'Wiring (per linear foot)', labor: 2.5, materials: 4.5, total: 7, materialRange: '$4-$5 per foot' },
-            'general': { description: 'Service Call', labor: 100, materials: 0, total: 100, note: '$100/hr, billed every 15 min after the first hour' }
+        // Service categories and quotes
+        const categories = {
+            nuisance: {
+                keywords: ['hot', 'gfci', 'tripping', 'flickering', 'buzzing', 'not working', 'outlet'],
+                questions: [
+                    'Is this issue in a wet area like a bathroom or kitchen?',
+                    'How often does it happen (e.g., constantly, only with certain appliances)?',
+                    'Any burning smells or visible damage?'
+                ],
+                safety: 'Hot outlets or frequent tripping can be fire hazards. Avoid using affected outlets until inspected.',
+                quote: 'Inspection and repair: $100-$300'
+            },
+            minor: {
+                keywords: ['breaker tripped', 'burned plug', 'lights out', 'bedroom', 'plug'],
+                questions: [
+                    'Did you try resetting the breaker? Did it trip again?',
+                    'Is the issue limited to one room or area?',
+                    'Any recent changes, like new appliances or bulbs?'
+                ],
+                safety: 'Burned plugs or wiring issues can be dangerous. Don’t use damaged outlets or fixtures.',
+                quote: 'Wiring or fixture repair: $150-$500'
+            },
+            urgent: {
+                keywords: ['no power', 'restaurant', 'sump pump', 'storm', 'weather', 'complete outage'],
+                questions: [
+                    'Is the entire building affected, or just part of it?',
+                    'Is this a residential or commercial property?',
+                    'Are critical systems like refrigeration or sump pumps impacted?'
+                ],
+                safety: 'Total power loss requires professional attention. Avoid touching electrical panels or downed lines.',
+                quote: 'Emergency service or replacement: $1000-$5000+'
+            },
+            safety: {
+                keywords: ['safe', 'sparking', 'warm', 'shock', 'exposed wire'],
+                questions: [
+                    'How frequent is the issue (e.g., occasional sparks or constant warmth)?',
+                    'Any visible damage, like burn marks or exposed wires?',
+                    'Does it happen with specific devices?'
+                ],
+                safety: 'Sparking or exposed wires are serious risks. Turn off power to the area and contact a professional immediately.',
+                quote: 'Safety inspection and repair: $200-$600'
+            }
         };
-
-        // Electrical fun facts
-        const funFacts = [
-            "Did you know the first light bulb was invented by Humphry Davy in 1802, but Edison made it practical in 1879?",
-            "A single lightning bolt can carry up to 1 billion volts—now that’s a real zap!",
-            "The first electrical power plant opened in 1882 in New York City, lighting up 400 lamps!",
-            "Copper is used in wiring because it’s an amazing conductor—second only to silver!",
-            "GFCI outlets can cut power in 1/30th of a second to keep you safe from shocks!"
-        ];
 
         // Initialize chat
         const chatOutput = document.getElementById('chat-output');
         window.onload = () => {
             if (userProfile.name) {
-                addMessage(`Welcome back, ${userProfile.name}! SkiddyWhiz is zapping with energy! Last visit: ${userProfile.lastVisit || 'unknown'}. Need a cost estimate for ${suggestService()}?`, 'bot');
+                addMessage(`Welcome back, ${userProfile.name}! SkiddyWhiz is ready to zap your electrical issues. What’s going on today?`, 'bot');
             } else {
                 addMessage('Hey there! I’m SkiddyWhiz, your zappy electrical assistant. What’s your name?', 'bot');
             }
-            // Show a random fun fact on load
-            addMessage(`⚡ Fun Fact: ${funFacts[Math.floor(Math.random() * funFacts.length)]}`, 'bot');
         };
 
         // Send user message
         function sendMessage() {
             const userInput = document.getElementById('user-input').value.trim();
             if (!userInput) return;
+
             addMessage(userInput, 'user');
             processInput(userInput);
             document.getElementById('user-input').value = '';
-
-            // Add zap effect
-            const zap = document.createElement('div');
-            zap.className = 'zap-effect';
-            zap.style.left = `${chatOutput.offsetWidth - 40}px`;
-            zap.style.bottom = '60px';
-            document.getElementById('chat-container').appendChild(zap);
-
             chatOutput.scrollTop = chatOutput.scrollHeight;
         }
 
@@ -196,111 +142,71 @@
         function addMessage(text, sender) {
             const message = document.createElement('div');
             message.textContent = `${sender === 'bot' ? 'SkiddyWhiz: ' : 'You: '}${text}`;
-            message.style.color = sender === 'bot' ? '#00b7eb' : '#333';
+            message.style.color = sender === 'bot' ? '#007BFF' : '#333';
             message.style.margin = '5px 0';
             chatOutput.appendChild(message);
-        }
-
-        // Calculate cost based on quantity
-        function calculateCost(serviceKey, quantity = 1) {
-            const service = services[serviceKey];
-            const laborCost = service.labor * quantity;
-            const materialCost = service.materials * quantity;
-            const totalCost = service.total * quantity;
-            return {
-                description: service.description,
-                labor: laborCost,
-                materials: materialCost,
-                total: totalCost,
-                materialRange: service.materialRange || '',
-                note: service.note || ''
-            };
         }
 
         // Process user input
         function processInput(input) {
             input = input.toLowerCase();
-            let quantity = 1;
-            const quantityMatch = input.match(/\b(\d+)\b/);
-            if (quantityMatch) quantity = parseInt(quantityMatch[1]);
 
             // Handle name input
             if (!userProfile.name && input.match(/my name is|i'm|im\s+([a-z]+)/i)) {
                 const nameMatch = input.match(/my name is|i'm|im\s+([a-z]+)/i);
                 userProfile.name = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1);
-                addMessage(`Nice to meet you, ${userProfile.name}! SkiddyWhiz is ready to spark some ideas. Need a cost estimate for services like outlet installation, wiring, or a panel change?`, 'bot');
+                addMessage(`Nice to meet you, ${userProfile.name}! What electrical issue brought you here today?`, 'bot');
+                return;
             }
-            // Handle service requests
-            else if (input.includes('fan') || input.includes('light') || input.includes('panel') || 
-                     input.includes('outlet') || input.includes('receptacle') || input.includes('plug') || 
-                     input.includes('wiring') || input.includes('service')) {
-                let serviceKey = 'general';
-                let costBreakdown = calculateCost(serviceKey);
 
-                if (input.includes('fan') && input.includes('install')) {
-                    serviceKey = 'fan install';
-                } else if (input.includes('fan') && input.includes('replace')) {
-                    serviceKey = 'fan replace';
-                } else if (input.includes('can light') || input.includes('lights')) {
-                    serviceKey = 'can lights';
-                } else if (input.includes('panel')) {
-                    serviceKey = 'panel change';
-                } else if (input.includes('outlet') || input.includes('receptacle')) {
-                    if (input.includes('install')) {
-                        if (input.includes('gfci')) serviceKey = 'install gfci';
-                        else if (input.includes('usb')) serviceKey = 'install usb';
-                        else if (input.includes('smart')) serviceKey = 'install smart';
-                        else if (input.includes('weather') || input.includes('tamper')) serviceKey = 'install weather';
-                        else if (input.includes('30') || input.includes('50') || input.includes('heavy')) serviceKey = 'install heavy';
-                        else serviceKey = 'install outlet';
-                    } else if (input.includes('replace')) {
-                        serviceKey = 'replace outlet';
-                    }
-                } else if (input.includes('plug') && input.includes('replace')) {
-                    serviceKey = 'replace plug';
-                } else if (input.includes('wiring')) {
-                    serviceKey = 'wiring';
-                }
-
-                costBreakdown = calculateCost(serviceKey, quantity);
-                userProfile.projects.push(serviceKey);
-                let response = `Zappy choice! ${costBreakdown.description} for ${quantity} unit${quantity > 1 ? 's' : ''}:\n`;
-                response += `- Labor: $${costBreakdown.labor}\n`;
-                response += `- Materials: $${costBreakdown.materials} (${costBreakdown.materialRange}, sourced from Home Depot)\n`;
-                response += `- Total: $${costBreakdown.total}${costBreakdown.note ? `\nNote: ${costBreakdown.note}` : ''}\n`;
-                response += `Want a quote? We prefer evenings, but daytime works too—when’s good for you?`;
-                addMessage(response, 'bot');
-
-                // Random chance to show a fun fact after a response
-                if (Math.random() < 0.3) { // 30% chance
-                    addMessage(`⚡ Fun Fact: ${funFacts[Math.floor(Math.random() * funFacts.length)]}`, 'bot');
+            // Categorize issue
+            let category = null;
+            let matchedKeywords = [];
+            for (const [cat, data] of Object.entries(categories)) {
+                const keywordsFound = data.keywords.filter(k => input.includes(k));
+                if (keywordsFound.length > 0) {
+                    category = cat;
+                    matchedKeywords = keywordsFound;
+                    break;
                 }
             }
-            // Handle quote scheduling
-            else if (input.includes('quote') || input.includes('schedule') || input.includes('evening') || input.includes('daytime')) {
-                let preference = input.includes('evening') ? 'evening' : input.includes('daytime') ? 'daytime' : null;
-                if (preference) {
-                    userProfile.quotePreference = preference;
-                    addMessage(`Got it, ${userProfile.name || 'friend'}! SkiddyWhiz has you down for a ${preference} quote. What service are we quoting (e.g., outlet install, wiring)?`, 'bot');
-                } else {
-                    addMessage(`Let’s spark a quote! We love evenings, but daytime’s cool too. Type ‘evening’ or ‘daytime’ to pick a time, or tell me what service you need!`, 'bot');
-                }
+
+            // If no category matches, prompt for more details
+            if (!category) {
+                addMessage('Hmm, I need a bit more info to zap that issue! Are you dealing with something like a hot outlet, tripped breaker, total power loss, or maybe a safety concern?', 'bot');
+                return;
             }
-            // General response
-            else {
-                addMessage(`SkiddyWhiz is buzzing to help! Ask for a cost estimate on services like outlet installation ($101-$103), wiring ($6-$8 per foot), or a panel change ($2,000). Need a quote?`, 'bot');
+
+            // Handle category-specific logic
+            userProfile.issue = category;
+            userProfile.details[category] = userProfile.details[category] || { responses: [], questionIndex: 0 };
+
+            const catData = categories[category];
+            const details = userProfile.details[category];
+
+            // Store user response
+            details.responses.push(input);
+
+            // Check for safety cross-referencing
+            if (category !== 'safety' && input.includes('spark') || input.includes('shock') || input.includes('exposed')) {
+                addMessage(`${catData.safety} This sounds like a safety concern too! ${categories.safety.safety}`, 'bot');
+                userProfile.issue = 'safety';
+                category = 'safety';
+            }
+
+            // Ask next question or provide quote
+            if (details.questionIndex < catData.questions.length) {
+                addMessage(catData.questions[details.questionIndex], 'bot');
+                details.questionIndex++;
+            } else {
+                const quote = `Based on what you’ve shared, this sounds like a ${category} issue. Estimated cost: ${catData.quote}. For a precise quote, email Megan@circlecityelectrical.com or Jason@circlecityelectrical.com to schedule a tech visit. Want to share more details or book now?`;
+                addMessage(quote, 'bot');
+                details.questionIndex = 0; // Reset for future interactions
             }
 
             // Update user profile
             userProfile.lastVisit = new Date().toLocaleString();
             localStorage.setItem('userProfile', JSON.stringify(userProfile));
-        }
-
-        // Suggest a service based on history
-        function suggestService() {
-            if (userProfile.projects.length === 0) return 'any zappy electrical services';
-            const lastProject = userProfile.projects[userProfile.projects.length - 1];
-            return services[lastProject].description || 'similar electrical projects';
         }
     </script>
 </body>
