@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkiddyWhiz - Electrical Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        #chat-container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        #chat-output {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #user-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        @media (max-width: 600px) {
+            #chat-container {
+                padding: 10px;
+            }
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-output"></div>
+        <input type="text" id="user-input" placeholder="Type your message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        // User data storage
+        let userProfile = JSON.parse(localStorage.getItem('userProfile')) || {
+            name: null,
+            projects: [],
+            lastVisit: null,
+            quotePreference: null
+        };
+
+        // Service pricing and info
+        const services = {
+            'fan install': 'Ceiling Fan Installation (new switch & bracing) - $450',
+            'fan replace': 'Ceiling Fan Replacement (existing wiring) - $350',
+            'can lights': 'Six Can Lights Installation - $1,000',
+            'panel change': 'Panel Change with Outside Disconnect (NEC code) - $4,000',
+            'general': 'Service Call - $100/hr, billed every 15 min after the first hour'
+        };
+
+        // Initialize chat
+        const chatOutput = document.getElementById('chat-output');
+        window.onload = () => {
+            if (userProfile.name) {
+                addMessage(`Welcome back, ${userProfile.name}! SkiddyWhiz is zapping with energy! Last visit: ${userProfile.lastVisit || 'unknown'}. Need help with ${suggestService()}?`, 'bot');
+            } else {
+                addMessage('Hey there! I’m SkiddyWhiz, your zappy electrical assistant. What’s your name?', 'bot');
+            }
+        };
+
+        // Send user message
+        function sendMessage() {
+            const userInput = document.getElementById('user-input').value.trim();
+            if (!userInput) return;
+            addMessage(userInput, 'user');
+            processInput(userInput);
+            document.getElementById('user-input').value = '';
+            chatOutput.scrollTop = chatOutput.scrollHeight;
+        }
+
+        // Add message to chat
+        function addMessage(text, sender) {
+            const message = document.createElement('div');
+            message.textContent = `${sender === 'bot' ? 'SkiddyWhiz: ' : 'You: '}${text}`;
+            message.style.color = sender === 'bot' ? '#007BFF' : '#333';
+            message.style.margin = '5px 0';
+            chatOutput.appendChild(message);
+        }
+
+        // Process user input
+        function processInput(input) {
+            input = input.toLowerCase();
+
+            // Handle name input
+            if (!userProfile.name && input.match(/my name is|i'm|im\s+([a-z]+)/i)) {
+                const nameMatch = input.match(/my name is|i'm|im\s+([a-z]+)/i);
+                userProfile.name = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1);
+                addMessage(`Nice to meet you, ${userProfile.name}! SkiddyWhiz is ready to spark some ideas. Need a quote for services like fan installation, can lights, or a panel change?`, 'bot');
+            }
+            // Handle service requests
+            else if (input.includes('fan') || input.includes('light') || input.includes('panel') || input.includes('service')) {
+                let serviceKey = 'general';
+                let serviceDetails = services['general'];
+                if (input.includes('fan') && input.includes('install')) {
+                    serviceKey = 'fan install';
+                    serviceDetails = services['fan install'];
+                } else if (input.includes('fan') && input.includes('replace')) {
+                    serviceKey = 'fan replace';
+                    serviceDetails = services['fan replace'];
+                } else if (input.includes('can light') || input.includes('lights')) {
+                    serviceKey = 'can lights';
+                    serviceDetails = services['can lights'];
+                } else if (input.includes('panel')) {
+                    serviceKey = 'panel change';
+                    serviceDetails = services['panel change'];
+                }
+
+                userProfile.projects.push(serviceKey);
+                addMessage(`Zappy choice! ${serviceDetails}. Want a quote? We prefer evenings, but daytime works too—when’s good for you?`, 'bot');
+            }
+            // Handle quote scheduling
+            else if (input.includes('quote') || input.includes('schedule') || input.includes('evening') || input.includes('daytime')) {
+                let preference = input.includes('evening') ? 'evening' : input.includes('daytime') ? 'daytime' : null;
+                if (preference) {
+                    userProfile.quotePreference = preference;
+                    addMessage(`Got it, ${userProfile.name || 'friend'}! SkiddyWhiz has you down for a ${preference} quote. What service are we quoting (e.g., fan install, panel change)?`, 'bot');
+                } else {
+                    addMessage(`Let’s spark a quote! We love evenings, but daytime’s cool too. Type ‘evening’ or ‘daytime’ to pick a time, or tell me what service you need!`, 'bot');
+                }
+            }
+            // General response
+            else {
+                addMessage(`SkiddyWhiz is buzzing to help! Ask about services like fan installation ($450), can lights ($1,000), panel changes ($4,000), or general service calls ($100/hr). Need a quote?`, 'bot');
+            }
+
+            // Update user profile
+            userProfile.lastVisit = new Date().toLocaleString();
+            localStorage.setItem('userProfile', JSON.stringify(userProfile));
+        }
+
+        // Suggest a service based on history
+        function suggestService() {
+            if (userProfile.projects.length === 0) return 'any zappy electrical services';
+            const lastProject = userProfile.projects[userProfile.projects.length - 1];
+            return services[lastProject] || 'similar electrical projects';
+        }
+    </script>
+</body>
+</html>
+
+Express yourself with emojis
+💖 👍 😂 🎉
+Respond quickly and add fun and personality to your emails
