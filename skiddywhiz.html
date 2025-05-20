@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="(Graphical User Interface)viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SkiddyWhiz - Electrical Assistant</title>
     <style>
         body {
@@ -68,12 +68,16 @@
         // User data storage
         let userProfile = JSON.parse(localStorage.getItem('userProfile')) || {
             name: null,
-            issue: null,
-            details: {},
+            currentIssue: null,
+            session: {
+                category: null,
+                askedQuestions: [],
+                responses: []
+            },
             lastVisit: null
         };
 
-        // Service categories and quotes
+        // Service categories and questions
         const categories = {
             nuisance: {
                 keywords: ['hot', 'gfci', 'tripping', 'flickering', 'buzzing', 'not working', 'outlet'],
@@ -121,7 +125,7 @@
         const chatOutput = document.getElementById('chat-output');
         window.onload = () => {
             if (userProfile.name) {
-                addMessage(`Welcome back, ${userProfile.name}! SkiddyWhiz is ready to zap your electrical issues. What’s going on today?`, 'bot');
+                addMessage(`Welcome back, ${userProfile.name}! SkiddyWhiz is ready to zap your electrical issues. What’s sparking your visit today?`, 'bot');
             } else {
                 addMessage('Hey there! I’m SkiddyWhiz, your zappy electrical assistant. What’s your name?', 'bot');
             }
@@ -155,56 +159,71 @@
             if (!userProfile.name && input.match(/my name is|i'm|im\s+([a-z]+)/i)) {
                 const nameMatch = input.match(/my name is|i'm|im\s+([a-z]+)/i);
                 userProfile.name = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1);
-                addMessage(`Nice to meet you, ${userProfile.name}! What electrical issue brought you here today?`, 'bot');
+                addMessage(`Nice to meet you, ${userProfile.name}! What electrical issue’s got you buzzing today?`, 'bot');
+                userProfile.session = { category: null, askedQuestions: [], responses: [] };
+                saveProfile();
+                return;
+            }
+
+            // Reset session if user wants to start over
+            if (input.includes('start over') || input.includes('new issue')) {
+                userProfile.session = { category: null, askedQuestions: [], responses: [] };
+                addMessage('Alright, let’s zap a new issue! What’s going on with your electrical system?', 'bot');
+                saveProfile();
                 return;
             }
 
             // Categorize issue
-            let category = null;
-            let matchedKeywords = [];
-            for (const [cat, data] of Object.entries(categories)) {
-                const keywordsFound = data.keywords.filter(k => input.includes(k));
-                if (keywordsFound.length > 0) {
-                    category = cat;
-                    matchedKeywords = keywordsFound;
-                    break;
+            let category = userProfile.session.category;
+            if (!category) {
+                for (const [cat, data] of Object.entries(categories)) {
+                    if (data.keywords.some(k => input.includes(k))) {
+                        category = cat;
+                        userProfile.session.category = cat;
+                        break;
+                    }
                 }
             }
 
             // If no category matches, prompt for more details
             if (!category) {
-                addMessage('Hmm, I need a bit more info to zap that issue! Are you dealing with something like a hot outlet, tripped breaker, total power loss, or maybe a safety concern?', 'bot');
+                addMessage('Hmm, SkiddyWhiz needs a bit more juice to figure this out! Are you dealing with a hot outlet, tripped breaker, total power loss, or maybe a safety concern?', 'bot');
+                saveProfile();
                 return;
             }
 
-            // Handle category-specific logic
-            userProfile.issue = category;
-            userProfile.details[category] = userProfile.details[category] || { responses: [], questionIndex: 0 };
-
-            const catData = categories[category];
-            const details = userProfile.details[category];
-
             // Store user response
-            details.responses.push(input);
+            userProfile.session.responses.push(input);
 
             // Check for safety cross-referencing
-            if (category !== 'safety' && input.includes('spark') || input.includes('shock') || input.includes('exposed')) {
-                addMessage(`${catData.safety} This sounds like a safety concern too! ${categories.safety.safety}`, 'bot');
-                userProfile.issue = 'safety';
+            if (category !== 'safety' && (input.includes('spark') || input.includes('shock') || input.includes('exposed'))) {
+                addMessage(`${categories[category].safety} Whoa, this sounds like a safety concern too! ${categories.safety.safety}`, 'bot');
+                userProfile.session.category = 'safety';
+                userProfile.session.askedQuestions = [];
                 category = 'safety';
             }
 
+            // Get available questions
+            const catData = categories[category];
+            const availableQuestions = catData.questions.filter(q => !userProfile.session.askedQuestions.includes(q));
+
             // Ask next question or provide quote
-            if (details.questionIndex < catData.questions.length) {
-                addMessage(catData.questions[details.questionIndex], 'bot');
-                details.questionIndex++;
+            if (availableQuestions.length > 0) {
+                const nextQuestion = availableQuestions[0];
+                addMessage(nextQuestion, 'bot');
+                userProfile.session.askedQuestions.push(nextQuestion);
             } else {
-                const quote = `Based on what you’ve shared, this sounds like a ${category} issue. Estimated cost: ${catData.quote}. For a precise quote, email Megan@circlecityelectrical.com or Jason@circlecityelectrical.com to schedule a tech visit. Want to share more details or book now?`;
+                const quote = `Looks like we’ve zapped the details for this ${category} issue, ${userProfile.name}! Estimated cost: ${catData.quote}. For an exact quote, email Megan@circlecityelectrical.com or Jason@circlecityelectrical.com to get a tech out. Want to dive into another issue or schedule a visit?`;
                 addMessage(quote, 'bot');
-                details.questionIndex = 0; // Reset for future interactions
+                userProfile.session = { category: null, askedQuestions: [], responses: [] }; // Reset for next issue
             }
 
             // Update user profile
+            saveProfile();
+        }
+
+        // Save user profile
+        function saveProfile() {
             userProfile.lastVisit = new Date().toLocaleString();
             localStorage.setItem('userProfile', JSON.stringify(userProfile));
         }
