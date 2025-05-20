@@ -3,80 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkiddyWhiz - Electrical Assistant</title>
+    <title>SkiddyWhiz (Beta) - Circle City Electrical Assistant</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f0f0f0;
+            background-color: #fff;
             margin: 0;
             padding: 20px;
         }
         #chat-container {
             width: 100%;
             max-width: 600px;
-            background: white;
+            background: #444;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
             padding: 20px;
         }
-        #character-display {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
+        #logo {
             margin-bottom: 20px;
-        }
-        .character {
-            position: relative;
             text-align: center;
         }
-        .character img {
-            width: 100px;
+        #logo img {
+            width: 200px;
             height: auto;
         }
-        .speech-bubble {
-            position: absolute;
-            top: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #fff;
-            border: 1px solid #ccc;
+        #speech-display {
+            background: #555;
             border-radius: 10px;
-            padding: 5px 10px;
-            font-size: 12px;
-            white-space: nowrap;
-            display: none;
+            padding: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #ddd;
+            font-size: 14px;
+            position: relative;
+            border: 2px solid #FFD700;
+            box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+        #speech-display::before {
+            content: '⚡';
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            font-size: 14px;
+            color: #FFD700;
+        }
+        #speech-display::after {
+            content: '⚡';
+            position: absolute;
+            bottom: -10px;
+            right: 10px;
+            font-size: 14px;
+            color: #FFD700;
         }
         #chat-output {
             height: 300px;
             overflow-y: auto;
-            border: 1px solid #ccc;
+            border: 1px solid #666;
             padding: 10px;
             margin-bottom: 10px;
+            background: #555;
+            color: #ddd;
         }
         .message {
             margin: 5px 0;
         }
         .skiddy-message {
-            color: #007BFF;
+            color: #1E90FF;
         }
-        .whizbuddy-message {
+        .whiz-message {
             color: #FF4500;
         }
         .user-message {
-            color: #333;
+            color: #ddd;
         }
         #user-input {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #666;
             border-radius: 5px;
+            background: #555;
+            color: #ddd;
         }
         button {
             padding: 10px 20px;
-            background-color: #007BFF;
+            background-color: #0056b3;
             color: white;
             border: none;
             border-radius: 5px;
@@ -84,14 +97,14 @@
             margin-top: 10px;
         }
         button:hover {
-            background-color: #0056b3;
+            background-color: #003f87;
         }
         @media (max-width: 600px) {
             #chat-container {
                 padding: 10px;
             }
-            .character img {
-                width: 80px;
+            #logo img {
+                width: 150px;
             }
             button {
                 width: 100%;
@@ -101,16 +114,10 @@
 </head>
 <body>
     <div id="chat-container">
-        <div id="character-display">
-            <div class="character">
-                <img id="skiddy" src="https://via.placeholder.com/100?text=SkiddyWhiz" alt="SkiddyWhiz">
-                <div class="speech-bubble" id="skiddy-bubble">Hi there!</div>
-            </div>
-            <div class="character">
-                <img id="whizbuddy" src="https://via.placeholder.com/100?text=WhizBuddy" alt="WhizBuddy">
-                <div class="speech-bubble" id="whizbuddy-bubble">Safety first!</div>
-            </div>
+        <div id="logo">
+            <img src="https://images.builderservices.io/s/cdn/v1.0/i/m?url=https%3A%2F%2Fstorage.googleapis.com%2Fproduction-domaincom-v1-0-5%2F195%2F761195%2F90WHDJLm%2F09c4f662b06d4a4588b6fb49c187494b&methods=resize%2C500%2C5000" alt="Circle City Electrical Logo">
         </div>
+        <div id="speech-display"></div>
         <div id="chat-output"></div>
         <input type="text" id="user-input" placeholder="Type your message...">
         <button onclick="sendMessage()">Send</button>
@@ -119,7 +126,6 @@
     <script>
         // User data storage
         let userProfile = JSON.parse(localStorage.getItem('userProfile')) || {
-            name: null,
             currentIssue: null,
             session: {
                 category: null,
@@ -175,16 +181,16 @@
 
         // Initialize chat
         const chatOutput = document.getElementById('chat-output');
-        const skiddyBubble = document.getElementById('skiddy-bubble');
-        const whizbuddyBubble = document.getElementById('whizbuddy-bubble');
-        let currentSpeaker = 'skiddy'; // Track who is speaking
+        const speechDisplay = document.getElementById('speech-display');
+        let currentSpeaker = 'skiddy';
+        let hasInteracted = false; // Track user interaction
+
+        // Sound effect for zazz
+        const zapSound = new Audio('https://www.myinstants.com/media/sounds/electric-zap.mp3'); // Replace with your zap sound URL
 
         window.onload = () => {
-            if (userProfile.name) {
-                addMessage(`Welcome back, ${userProfile.name}! SkiddyWhiz is ready to zap your electrical issues. What’s sparking your visit today?`, 'skiddy');
-            } else {
-                addMessage('Hey there! I’m SkiddyWhiz, your zappy electrical assistant. What’s your name?', 'skiddy');
-            }
+            addMessage('Hey there! I’m Skiddy from SkiddyWhiz, your zappy electrical assistant for Circle City Electrical! (Beta Version) What electrical issue’s got you buzzing?', 'skiddy', false);
+            setTimeout(() => addMessage(`And I’m Whiz, here to keep things safe and zappy! Let’s get started.`, 'whiz', false), 1000);
         };
 
         // Send user message
@@ -192,6 +198,7 @@
             const userInput = document.getElementById('user-input').value.trim();
             if (!userInput) return;
 
+            hasInteracted = true; // User has interacted
             addMessage(userInput, 'user');
             processInput(userInput);
             document.getElementById('user-input').value = '';
@@ -199,28 +206,31 @@
         }
 
         // Add message to chat
-        function addMessage(text, sender) {
+        function addMessage(text, sender, playSound = true) {
             const message = document.createElement('div');
             message.classList.add('message');
             if (sender === 'skiddy') {
                 message.classList.add('skiddy-message');
-                message.textContent = `SkiddyWhiz: ${text}`;
-                skiddyBubble.textContent = text;
-                skiddyBubble.style.display = 'block';
-                whizbuddyBubble.style.display = 'none';
+                message.textContent = `Skiddy: ${text}`;
+                speechDisplay.textContent = text;
+                speechDisplay.style.display = 'block';
                 currentSpeaker = 'skiddy';
-            } else if (sender === 'whizbuddy') {
-                message.classList.add('whizbuddy-message');
-                message.textContent = `WhizBuddy: ${text}`;
-                whizbuddyBubble.textContent = text;
-                whizbuddyBubble.style.display = 'block';
-                skiddyBubble.style.display = 'none';
-                currentSpeaker = 'whizbuddy';
+                if (playSound && hasInteracted) {
+                    zapSound.play().catch(err => console.log('Audio play failed:', err));
+                }
+            } else if (sender === 'whiz') {
+                message.classList.add('whiz-message');
+                message.textContent = `Whiz: ${text}`;
+                speechDisplay.textContent = text;
+                speechDisplay.style.display = 'block';
+                currentSpeaker = 'whiz';
+                if (playSound && hasInteracted) {
+                    zapSound.play().catch(err => console.log('Audio play failed:', err));
+                }
             } else {
                 message.classList.add('user-message');
                 message.textContent = `You: ${text}`;
-                skiddyBubble.style.display = 'none';
-                whizbuddyBubble.style.display = 'none';
+                speechDisplay.style.display = 'none';
             }
             chatOutput.appendChild(message);
         }
@@ -229,20 +239,11 @@
         function processInput(input) {
             input = input.toLowerCase();
 
-            // Handle name input
-            if (!userProfile.name && input.match(/my name is|i'm|im\s+([a-z]+)/i)) {
-                const nameMatch = input.match(/my name is|i'm|im\s+([a-z]+)/i);
-                userProfile.name = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1);
-                addMessage(`Nice to meet you, ${userProfile.name}! What electrical issue’s got you buzzing today?`, 'skiddy');
-                userProfile.session = { category: null, askedQuestions: [], responses: [] };
-                saveProfile();
-                return;
-            }
-
             // Reset session if user wants to start over
             if (input.includes('start over') || input.includes('new issue')) {
                 userProfile.session = { category: null, askedQuestions: [], responses: [] };
-                addMessage('Alright, let’s zap a new issue! What’s going on with your electrical system?', 'skiddy');
+                addMessage('Alright, let’s zap a new issue! Skiddy here—what’s going on?', 'skiddy');
+                setTimeout(() => addMessage(`Whiz here too! Let’s spark some solutions!`, 'whiz'), 1000);
                 saveProfile();
                 return;
             }
@@ -261,7 +262,8 @@
 
             // If no category matches, prompt for more details
             if (!category) {
-                addMessage('Hmm, SkiddyWhiz needs a bit more juice to figure this out! Are you dealing with a hot outlet, tripped breaker, total power loss, or maybe a safety concern?', 'skiddy');
+                addMessage('Hmm, Skiddy needs a bit more juice to figure this out! Are you dealing with a hot outlet, tripped breaker, total power loss, or a safety concern?', 'skiddy');
+                setTimeout(() => addMessage(`Whiz here—let’s get to the root of this zap-tastrophe!`, 'whiz'), 1000);
                 saveProfile();
                 return;
             }
@@ -271,8 +273,8 @@
 
             // Check for safety cross-referencing
             if (category !== 'safety' && (input.includes('spark') || input.includes('shock') || input.includes('exposed'))) {
-                addMessage(`${categories[category].safety} Whoa, this sounds like a safety concern too!`, 'skiddy');
-                addMessage(categories.safety.safety, 'whizbuddy');
+                addMessage(`Whoa, this sounds serious! Skiddy here—this might be a safety concern.`, 'skiddy');
+                addMessage(`${categories[category].safety} ${categories.safety.safety}`, 'whiz');
                 userProfile.session.category = 'safety';
                 userProfile.session.askedQuestions = [];
                 category = 'safety';
@@ -285,12 +287,17 @@
             // Ask next question or provide quote
             if (availableQuestions.length > 0) {
                 const nextQuestion = availableQuestions[0];
-                addMessage(nextQuestion, 'skiddy');
+                if (currentSpeaker === 'whiz') {
+                    addMessage(nextQuestion, 'skiddy');
+                } else {
+                    addMessage(nextQuestion, 'whiz');
+                }
                 userProfile.session.askedQuestions.push(nextQuestion);
             } else {
-                addMessage(`Looks like we’ve zapped the details for this ${category} issue, ${userProfile.name}! Estimated cost: ${catData.quote}.`, 'skiddy');
-                addMessage(`For an exact quote, email Megan@circlecityelectrical.com or Jason@circlecityelectrical.com to get a tech out. Want to dive into another issue or schedule a visit?`, 'whizbuddy');
-                userProfile.session = { category: null, askedQuestions: [], responses: [] }; // Reset for next issue
+                addMessage(`Looks like we’ve zapped the details for this ${category} issue! Estimated cost: ${catData.quote}.`, 'skiddy');
+                addMessage(`For an exact quote, email Megan@circlecityelectrical.com or Jason@circlecityelectrical.com to get a tech out. Want to dive into another issue or schedule a visit?`, 'whiz');
+                setTimeout(() => addMessage(`Since we're in beta, we'd love your feedback! Email Megan@circlecityelectrical.com or Jason@circlecityelectrical.com with your thoughts.`, 'skiddy'), 1000);
+                userProfile.session = { category: null, askedQuestions: [], responses: [] };
             }
 
             // Update user profile
